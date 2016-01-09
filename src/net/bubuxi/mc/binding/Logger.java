@@ -11,7 +11,10 @@ public class Logger {
     public static int debugLevel = -1;
 
     public static void sendMessage(Player player, String msg) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
+        String [] list = msg.split(";");
+        for(String s : list) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', s));
+        }
     }
     public static void sendMessage(String name, String msg) {
         Bukkit.getPlayer(name).sendMessage(ChatColor.translateAlternateColorCodes('&', msg));

@@ -1,22 +1,26 @@
 package net.bubuxi.mc.binding;
 
 import at.pcgamingfreaks.georgh.MinePacks.Backpack;
-import org.bukkit.entity.Item;
+import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.maxgamer.QuickShop.Shop.ShopCreateEvent;
 
+import java.text.Bidi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,7 +51,6 @@ public class BInventoryListener implements Listener {
                     if (((PlayerInventory) e.getDestination()).getHolder() instanceof Player) {
                         Player dest = (Player) (((PlayerInventory) e.getDestination()).getHolder());
                         if (dest.isOp()) {
-                            Logger.info("1");
                             return;
                         }
                     }
@@ -56,17 +59,15 @@ public class BInventoryListener implements Listener {
                 else if(e.getDestination() instanceof PlayerInventory) {
                     if(((PlayerInventory)e.getDestination()).getHolder() instanceof Player) {
                         Player dest = (Player)(((PlayerInventory) e.getDestination()).getHolder());
-                        if(dest.getName().equals(Binding.getBinder(e.getItem()))) {
-                            Logger.info("2");
+                        //if(dest.getName().equals(Binding.getBinder(e.getItem()))) {
                             return;
-                        }
+                        //}
                     }
                 }
                 //move to MinePacks
                 else if (e.getDestination().getTitle()!=null) {
                     Backpack backpack = plugin.minepacks.DB.getBackpack(e.getDestination().getTitle());
-                    if(backpack!=null&&backpack.getOwner().getName().equals(Binding.getBinder(e.getItem()))) {
-                        Logger.info("3");
+                    if(backpack!=null/*&&backpack.getOwner().getName().equals(Binding.getBinder(e.getItem()))*/) {
                         return;
                     }
                 }
@@ -74,8 +75,7 @@ public class BInventoryListener implements Listener {
             //move from MinePacks
             else if(e.getSource()!=null&&e.getSource().getTitle()!=null) {
                 Backpack backpack = plugin.minepacks.DB.getBackpack(e.getSource().getTitle());
-                if(backpack!=null&&backpack.getOwner().getName().equals(Binding.getBinder(e.getItem()))) {
-                    Logger.info("4");
+                if(backpack!=null/*&&backpack.getOwner().getName().equals(Binding.getBinder(e.getItem()))*/) {
                     return;
                 }
             }
@@ -88,9 +88,13 @@ public class BInventoryListener implements Listener {
      */
     @EventHandler
     public void onThrowItem(PlayerDropItemEvent e) {
-        if(Binding.isBinded(e.getItemDrop().getItemStack())) {
-            if(Binding.getBinder(e.getItemDrop().getItemStack()).equals(e.getPlayer().getName()))
+        if(!e.getPlayer().isOp()) {
+            if (Binding.isBinded(e.getItemDrop().getItemStack())) {
+                //if(Binding.getBinder(e.getItemDrop().getItemStack()).equals(e.getPlayer().getName())) {
                 e.setCancelled(true);
+                Logger.sendMessage(e.getPlayer(), "&6[绑定系统]&c绑定物品无法丢出,如果要删除请手持物品输入/binding remove删除");
+                //}
+            }
         }
     }
     /*
@@ -100,7 +104,7 @@ public class BInventoryListener implements Listener {
     public void onAttack(EntityDamageByEntityEvent e) {
         if(e.getDamager() instanceof Player) {
             Player p = (Player)e.getDamager();
-            if(Binding.isBinded(p.getItemInHand())&&Binding.getBinder(p.getItemInHand()).equals(p.getName())) {
+            if(Binding.isBinded(p.getItemInHand())/*&&Binding.getBinder(p.getItemInHand()).equals(p.getName())*/) {
                 e.setDamage(e.getDamage()+3);
             }
         }
@@ -119,7 +123,7 @@ public class BInventoryListener implements Listener {
 
                 ItemStack is = isi.next();
                 Logger.info("iterating");
-                if (Binding.isBinded(is) && Binding.getBinder(is).equals(e.getEntity().getName())) {
+                if (Binding.isBinded(is) /*&& Binding.getBinder(is).equals(e.getEntity().getName())*/) {
                     Logger.info("found");
                     //e.getEntity().getInventory().setItem(counter++,is.clone());
                     //e.getEntity().getInventory().addItem(is.clone());
@@ -144,10 +148,61 @@ public class BInventoryListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler
+    public void onPutArmor(PlayerArmorStandManipulateEvent event) {
+        if(event.getArmorStandItem()!=null&&Binding.isBinded(event.getArmorStandItem())) {
+            event.setCancelled(true);
+        }
+        else if(event.getPlayerItem()!=null&&Binding.isBinded(event.getPlayerItem())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPutInFrame(PlayerInteractEntityEvent event) {
+        if(event.getRightClicked().getType()== EntityType.ITEM_FRAME) {
+            if (Binding.isBinded(event.getPlayer().getItemInHand())) {
+                event.setCancelled(true);
+            }
+            if(Binding.isBinded(((ItemFrame)event.getRightClicked()).getItem())) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+/*    @EventHandler
+    public void blah(PlayerInteractEntityEvent event){
+
+        Player player = event.getPlayer();
+
+        Entity e = event.getRightClicked();
+
+        if(e instanceof ItemFrame){
+
+            player.sendMessage("You right clicked an item frame!");
+
+        }
+
+    }*/
+
+
+
+
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInv(InventoryClickEvent event) {
         Inventory top = event.getView().getTopInventory();
         Inventory bottom = event.getView().getBottomInventory();
+        if(event.getAction()==InventoryAction.HOTBAR_SWAP||event.getAction()==InventoryAction.HOTBAR_MOVE_AND_READD) {
+            Player p = (Player)event.getWhoClicked();
+            if(event.getHotbarButton()<p.getInventory().getSize()&&event.getHotbarButton()>-1
+                    &&Binding.isBinded(p.getInventory().getItem(event.getHotbarButton()))) {
+                event.setCancelled(true);
+                event.setResult(Event.Result.DENY);
+            }
+
+
+        }
 
         if(bottom.getType() == InventoryType.PLAYER
                 &&event.getWhoClicked()instanceof Player){
@@ -158,14 +213,17 @@ public class BInventoryListener implements Listener {
                         if (event.getInventory().getTitle().equalsIgnoreCase("container.chest")) {
                             if (event.getRawSlot() > 26) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.chestDouble")) {
                             if (event.getRawSlot() > 53) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.enderchest")) {
                             if (event.getRawSlot() > 26) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if(event.getInventory().getTitle().equalsIgnoreCase("container.crafting")
                             &&event.getInventory().getType()==InventoryType.CRAFTING) {
@@ -173,46 +231,57 @@ public class BInventoryListener implements Listener {
                         }  else if (event.getInventory().getTitle().equalsIgnoreCase("container.furnace")) {
                             if (event.getRawSlot() > 2) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("enchant")) {
                             if (event.getRawSlot() > 1) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("repair")) {
                             if (event.getRawSlot() > 2) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.brewing")) {
                             if (event.getRawSlot() > 3) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.dispenser")) {
                             if (event.getRawSlot() > 8) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.dropper")) {
                             if (event.getRawSlot() > 8) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.hopper")) {
                             if (event.getRawSlot() > 4) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.beacon")) {
                             if (event.getRawSlot() > 0) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.crafting")
                                 && event.getInventory().getType() == InventoryType.WORKBENCH) {
                             if (event.getRawSlot() > 9) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("mob.villager")) {
                             if (event.getRawSlot() > 2) {
                                 event.setCancelled(true);
+                                event.setResult(Event.Result.DENY);
                             }
                         } else {
                             event.setCancelled(true);
+                            event.setResult(Event.Result.DENY);
                         }
                     }
                 }
