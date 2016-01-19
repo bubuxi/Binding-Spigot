@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class Binding extends JavaPlugin {
 
-    static String loreName = "&6绑定";
+    static String loreName;
     public MinePacks minepacks;
     public double money;
     Economy econ;
@@ -31,6 +31,7 @@ public class Binding extends JavaPlugin {
         this.getCommand("binding").setExecutor(new BCommand(this));
         minepacks = (MinePacks) Bukkit.getPluginManager().getPlugin("MinePacks");
         money = getConfig().getDouble("money");
+        loreName = getConfig().getString("LoreName");
         setupEconomy();
     }
 

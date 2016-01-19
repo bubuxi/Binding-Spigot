@@ -1,8 +1,6 @@
 package net.bubuxi.mc.binding;
 
 import at.pcgamingfreaks.georgh.MinePacks.Backpack;
-import org.bukkit.Material;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -10,17 +8,20 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.*;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.maxgamer.QuickShop.Shop.ShopCreateEvent;
 
-import java.text.Bidi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ public class BInventoryListener implements Listener {
 
     private Binding plugin;
     private HashMap<Player, List<ItemStack>> returnItems;
+    private HashMap<String, Boolean> cache;
 
     BInventoryListener(Binding b) {
         plugin = b;
@@ -212,81 +214,124 @@ public class BInventoryListener implements Listener {
                     if(plugin.minepacks.DB.getBackpack(event.getInventory().getTitle())==null) {
                         if (event.getInventory().getTitle().equalsIgnoreCase("container.chest")) {
                             if (event.getRawSlot() > 26) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Chest")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.chestDouble")) {
                             if (event.getRawSlot() > 53) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("DoubleChest")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
-                        } else if (event.getInventory().getTitle().equalsIgnoreCase("container.enderchest")) {
+                        }
+                        else if (event.getInventory().getTitle().equalsIgnoreCase("container.enderchest")) {
                             if (event.getRawSlot() > 26) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("EnderChest")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
-                        } else if(event.getInventory().getTitle().equalsIgnoreCase("container.crafting")
+                        }
+                        else if(event.getInventory().getTitle().equalsIgnoreCase("container.crafting")
                             &&event.getInventory().getType()==InventoryType.CRAFTING) {
-                            //do nothing
-                        }  else if (event.getInventory().getTitle().equalsIgnoreCase("container.furnace")) {
+                            if (event.getRawSlot() > 5) {
+                                if(needCancel("Crafing")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
+                            }
+                        }
+                        else if (event.getInventory().getTitle().equalsIgnoreCase("container.furnace")) {
                             if (event.getRawSlot() > 2) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Furnace")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("enchant")) {
                             if (event.getRawSlot() > 1) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Enchant")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("repair")) {
                             if (event.getRawSlot() > 2) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Repair")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.brewing")) {
                             if (event.getRawSlot() > 3) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Brewing")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.dispenser")) {
                             if (event.getRawSlot() > 8) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Dispenser")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.dropper")) {
                             if (event.getRawSlot() > 8) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Dropper")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.hopper")) {
                             if (event.getRawSlot() > 4) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Hopper")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.beacon")) {
                             if (event.getRawSlot() > 0) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Beacon")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("container.crafting")
                                 && event.getInventory().getType() == InventoryType.WORKBENCH) {
                             if (event.getRawSlot() > 9) {
-                                event.setCancelled(true);
-                                event.setResult(Event.Result.DENY);
+                                if(needCancel("Workbench")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
                             }
                         } else if (event.getInventory().getTitle().equalsIgnoreCase("mob.villager")) {
-                            if (event.getRawSlot() > 2) {
+                            if (event.getRawSlot() > 1) {
+                                if(needCancel("Villager")) {
+                                    event.setCancelled(true);
+                                    event.setResult(Event.Result.DENY);
+                                }
+                            }
+                        } else {
+                            if(needCancel("Other")) {
                                 event.setCancelled(true);
                                 event.setResult(Event.Result.DENY);
                             }
-                        } else {
-                            event.setCancelled(true);
-                            event.setResult(Event.Result.DENY);
                         }
                     }
                 }
             }
         }
+    }
+
+    private boolean needCancel(String str) {
+        if(!cache.containsKey(str)) {
+            cache.put(str, !plugin.getConfig().getBoolean("Container.".concat(str)));
+        }
+        return cache.get(str);
     }
 
 
