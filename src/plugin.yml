@@ -1,5 +1,5 @@
 name: Binding
-version: 1.0
+version: 1.1
 author: Bubuxi
 main: net.bubuxi.mc.binding.Binding
 depend: [MinePacks]

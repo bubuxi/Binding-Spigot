@@ -1,0 +1,18 @@
+money: 100
+LoreName: '&6绑定'
+Container:
+  Chest: false
+  DoubleChest: false
+  EnderChest: true
+  Crafting: true
+  Furnace: false
+  Enchant: false
+  Repair: false
+  Brewing: false
+  Dispenser: false
+  Dropper: false
+  Hopper: false
+  Beacon: false
+  Workbench: false
+  Villager: false
+  Other: false
